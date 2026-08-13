@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.avif binary
+*.webp binary
+*.psd filter=lfs diff=lfs merge=lfs -text
+*.woff binary
+*.woff2 binary

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+public/assets/background-hero.png
+public/assets/ceremonial-printer.png
+.vite-dev.log
+.vite-dev.err.log
+.lighthouse-report.json
+.lighthouse-prod.json
+.lh-chrome/
+.preview.log
+.preview.err.log
+*.local
