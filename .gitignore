@@ -2,6 +2,7 @@ node_modules/
 dist/
 public/assets/background-hero.png
 public/assets/ceremonial-printer.png
+public/assets/ceremonial-printer-v2.png
 .vite-dev.log
 .vite-dev.err.log
 .lighthouse-report.json
@@ -10,3 +11,6 @@ public/assets/ceremonial-printer.png
 .preview.log
 .preview.err.log
 *.local
+.env
+.env.*
+!.env.example

@@ -1,10 +1,14 @@
+import highSchoolTemplateUrl from '../../Source/Vinh danh Template 2.png'
+
 export const CERTIFICATE_SIZE = { width: 1920, height: 1080 } as const
 
+export type EducationLevel = 'high-school' | 'university'
+
 export const PORTRAIT_APERTURE = {
-  x: 146,
-  y: 91,
-  width: 660,
-  height: 989,
+  x: 297,
+  y: 192,
+  width: 486,
+  height: 697,
 } as const
 
 const TEXT_CENTER_X = 1275
@@ -14,8 +18,22 @@ const SERIF_STACK = '"Noto Serif", Georgia, serif'
 
 export interface CertificateInput {
   portrait: CanvasImageSource
+  portraitCrop?: PortraitCrop
   fullName: string
   schoolName: string
+  educationLevel: EducationLevel
+}
+
+export interface PortraitCrop {
+  zoom: number
+  focalX: number
+  focalY: number
+}
+
+export const DEFAULT_PORTRAIT_CROP: PortraitCrop = {
+  zoom: 1,
+  focalX: 0.5,
+  focalY: 0.42,
 }
 
 export interface CoverCrop {
@@ -36,6 +54,7 @@ export function getCoverCrop(
   targetHeight: number,
   focalX = 0.5,
   focalY = 0.42,
+  zoom = 1,
 ): CoverCrop {
   const sourceRatio = sourceWidth / sourceHeight
   const targetRatio = targetWidth / targetHeight
@@ -49,6 +68,10 @@ export function getCoverCrop(
     cropHeight = sourceWidth / targetRatio
   }
 
+  const safeZoom = Math.min(2.5, Math.max(1, zoom))
+  cropWidth /= safeZoom
+  cropHeight /= safeZoom
+
   const sx = Math.min(
     sourceWidth - cropWidth,
     Math.max(0, sourceWidth * focalX - cropWidth / 2),
@@ -59,6 +82,31 @@ export function getCoverCrop(
   )
 
   return { sx, sy, sourceWidth: cropWidth, sourceHeight: cropHeight }
+}
+
+export function normalizePortraitCrop(
+  sourceWidth: number,
+  sourceHeight: number,
+  targetWidth: number,
+  targetHeight: number,
+  crop: PortraitCrop,
+): PortraitCrop {
+  const safeZoom = Math.min(2.5, Math.max(1, crop.zoom))
+  const cover = getCoverCrop(
+    sourceWidth,
+    sourceHeight,
+    targetWidth,
+    targetHeight,
+    crop.focalX,
+    crop.focalY,
+    safeZoom,
+  )
+
+  return {
+    zoom: safeZoom,
+    focalX: (cover.sx + cover.sourceWidth / 2) / sourceWidth,
+    focalY: (cover.sy + cover.sourceHeight / 2) / sourceHeight,
+  }
 }
 
 export function fitFontSize(
@@ -131,9 +179,18 @@ function drawCoverImage(
   y: number,
   width: number,
   height: number,
+  cropPosition: PortraitCrop,
 ) {
   const dimensions = getImageDimensions(image)
-  const crop = getCoverCrop(dimensions.width, dimensions.height, width, height)
+  const crop = getCoverCrop(
+    dimensions.width,
+    dimensions.height,
+    width,
+    height,
+    cropPosition.focalX,
+    cropPosition.focalY,
+    cropPosition.zoom,
+  )
   context.drawImage(
     image,
     crop.sx,
@@ -157,11 +214,15 @@ function loadImage(source: string): Promise<HTMLImageElement> {
   })
 }
 
-let templatePromise: Promise<HTMLImageElement> | undefined
+const templatePromises: Partial<Record<EducationLevel, Promise<HTMLImageElement>>> = {}
 
-function getTemplate() {
-  templatePromise ??= loadImage('/assets/vinh-danh-template.png')
-  return templatePromise
+function getTemplate(educationLevel: EducationLevel) {
+  templatePromises[educationLevel] ??= loadImage(
+    educationLevel === 'high-school'
+      ? highSchoolTemplateUrl
+      : '/assets/vinh-danh-template.png',
+  )
+  return templatePromises[educationLevel]
 }
 
 async function ensureFonts() {
@@ -231,10 +292,12 @@ function drawSchool(context: CanvasRenderingContext2D, value: string) {
 
 export async function createCertificate({
   portrait,
+  portraitCrop = DEFAULT_PORTRAIT_CROP,
   fullName,
   schoolName,
+  educationLevel,
 }: CertificateInput): Promise<Blob> {
-  const [template] = await Promise.all([getTemplate(), ensureFonts()])
+  const [template] = await Promise.all([getTemplate(educationLevel), ensureFonts()])
   const canvas = document.createElement('canvas')
   canvas.width = CERTIFICATE_SIZE.width
   canvas.height = CERTIFICATE_SIZE.height
@@ -251,6 +314,7 @@ export async function createCertificate({
     PORTRAIT_APERTURE.y,
     PORTRAIT_APERTURE.width,
     PORTRAIT_APERTURE.height,
+    portraitCrop,
   )
   context.drawImage(template, 0, 0, canvas.width, canvas.height)
   drawName(context, fullName)
