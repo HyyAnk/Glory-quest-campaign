@@ -383,7 +383,7 @@ img {
   grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: clamp(14px, 1.25vw, 20px);
   align-items: start;
-  width: min(100%, 1340px);
+  width: min(100%, 1120px);
   margin: 0 auto;
 }
 
@@ -394,7 +394,7 @@ img {
 
 .nominee-portrait {
   position: relative;
-  aspect-ratio: 1 / 0.84;
+  aspect-ratio: 486 / 697;
   padding: 4px;
   overflow: hidden;
   border: 1px solid rgba(255, 220, 143, 0.64);
@@ -525,8 +525,8 @@ img {
 }
 
 .golden-loading-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: clamp(14px, 1.25vw, 20px); }
-.golden-loading-row { width: min(100%, 1340px); margin: 0 auto; }
-.golden-loading-row span { aspect-ratio: 1 / 0.84; border-radius: 39% 39% 11px 11px / 21% 21% 11px 11px; background: linear-gradient(100deg, rgba(255,255,255,.04), rgba(255,221,153,.12), rgba(255,255,255,.04)); background-size: 200% 100%; animation: golden-loading 1.6s infinite linear; }
+.golden-loading-row { width: min(100%, 1120px); margin: 0 auto; }
+.golden-loading-row span { aspect-ratio: 486 / 697; border-radius: 39% 39% 11px 11px / 21% 21% 11px 11px; background: linear-gradient(100deg, rgba(255,255,255,.04), rgba(255,221,153,.12), rgba(255,255,255,.04)); background-size: 200% 100%; animation: golden-loading 1.6s infinite linear; }
 .storage-note { margin: 30px auto 0; color: #936f61; font-size: 11px; text-align: center; }
 
 .intro-copy {
@@ -1607,7 +1607,7 @@ img {
   .golden-track,
   .golden-loading-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 13px; }
   .nominee-portrait { padding: 5px; border-radius: 40% 40% 13px 13px / 20% 20% 13px 13px; }
-  .nominee-portrait { aspect-ratio: 4 / 5; }
+  .nominee-portrait { aspect-ratio: 486 / 697; }
   .nominee-portrait::after { inset: 5px; }
   .nominee-number { top: 10px; left: 10px; width: 31px; height: 31px; font-size: 10px; }
   .nominee-copy { padding: 14px 2px 0; }

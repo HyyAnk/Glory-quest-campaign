@@ -18,6 +18,7 @@ describe('certificate helpers', () => {
 
   it('matches the transparent portrait window measured from both templates', () => {
     expect(PORTRAIT_APERTURE).toEqual({ x: 297, y: 192, width: 486, height: 697 })
+    expect(Math.round(720 * (PORTRAIT_APERTURE.height / PORTRAIT_APERTURE.width))).toBe(1033)
   })
 
   it('normalizes repeated whitespace', () => {

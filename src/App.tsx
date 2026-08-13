@@ -577,7 +577,7 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
                   ) : (
                     <UploadSimple size={19} weight="bold" aria-hidden="true" />
                   )}
-                  <span>{fileName || 'Chọn chân dung'}</span>
+                  <span>{fileName || 'Chân dung'}</span>
                 </button>
                 {portraitUrl && (
                   <button className="recrop-button" type="button" onClick={editCrop} disabled={busy}>

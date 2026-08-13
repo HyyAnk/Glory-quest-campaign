@@ -1,5 +1,6 @@
 import {
   DEFAULT_PORTRAIT_CROP,
+  PORTRAIT_APERTURE,
   type EducationLevel,
   type PortraitCrop,
   getCoverCrop,
@@ -254,7 +255,7 @@ export async function createPortraitCard(
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = 720
-  canvas.height = 900
+  canvas.height = Math.round(canvas.width * (PORTRAIT_APERTURE.height / PORTRAIT_APERTURE.width))
   const context = canvas.getContext('2d')
   if (!context) throw new Error('Trình duyệt không thể chuẩn bị ảnh Bảng Vàng.')
 
