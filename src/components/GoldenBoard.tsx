@@ -81,7 +81,6 @@ export function GoldenBoard({ nominees, loading, onDeleted }: GoldenBoardProps) 
                   >
                     <div className="nominee-portrait">
                       <img src={nominee.portraitUrl} alt={`Chân dung ${nominee.fullName}`} />
-                      <span className="nominee-number">{String(nominee.sequence).padStart(2, '0')}</span>
                       <span className="nominee-shine" aria-hidden="true" />
                       <button
                         className="nominee-delete"
