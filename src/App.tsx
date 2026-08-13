@@ -32,6 +32,7 @@ import {
 } from './lib/certificate'
 import { GoldenBoard } from './components/GoldenBoard'
 import { PortraitCropper } from './components/PortraitCropper'
+import { acceleratedCompletionProgress, nextWaitingProgress } from './lib/nominationProgress'
 import {
   type GoldenNominee,
   createPortraitCard,
@@ -221,6 +222,8 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
   const resultUrlRef = useRef<string | null>(null)
   const timerRef = useRef<number | null>(null)
   const nominationProgressTimerRef = useRef<number | null>(null)
+  const nominationProgressAnimationRef = useRef<number | null>(null)
+  const nominationProgressValueRef = useRef(0)
   const resultRef = useRef<HTMLElement>(null)
   const printingPaperRef = useRef<HTMLImageElement>(null)
   const resultFrameRef = useRef<HTMLDivElement>(null)
@@ -263,6 +266,7 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
       if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
       if (timerRef.current) window.clearTimeout(timerRef.current)
       if (nominationProgressTimerRef.current) window.clearInterval(nominationProgressTimerRef.current)
+      if (nominationProgressAnimationRef.current) window.cancelAnimationFrame(nominationProgressAnimationRef.current)
     }
   }, [])
 
@@ -320,6 +324,11 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
       window.clearInterval(nominationProgressTimerRef.current)
       nominationProgressTimerRef.current = null
     }
+    if (nominationProgressAnimationRef.current) {
+      window.cancelAnimationFrame(nominationProgressAnimationRef.current)
+      nominationProgressAnimationRef.current = null
+    }
+    nominationProgressValueRef.current = 0
     setNominationProgress(0)
     setNominated(false)
     setErrors((current) => ({ ...current, submit: undefined }))
@@ -488,15 +497,16 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
     }
 
     setNominating(true)
-    setNominationProgress(6)
+    nominationProgressValueRef.current = 2
+    setNominationProgress(2)
     setNominationError('')
     nominationProgressTimerRef.current = window.setInterval(() => {
       setNominationProgress((current) => {
-        if (current >= 92) return current
-        const remaining = 92 - current
-        return Math.min(92, current + Math.max(1, Math.ceil(remaining * 0.12)))
+        const next = nextWaitingProgress(current)
+        nominationProgressValueRef.current = next
+        return next
       })
-    }, 180)
+    }, 320)
     try {
       const [certificate, portrait] = await Promise.all([
         fetch(resultUrl).then((response) => response.blob()),
@@ -515,8 +525,29 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
         window.clearInterval(nominationProgressTimerRef.current)
         nominationProgressTimerRef.current = null
       }
-      setNominationProgress(100)
-      await new Promise((resolve) => window.setTimeout(resolve, reduceMotion ? 80 : 520))
+      await new Promise<void>((resolve) => {
+        const startValue = nominationProgressValueRef.current
+        const duration = reduceMotion ? 80 : 760
+        const startedAt = window.performance.now()
+
+        const finishProgress = (timestamp: number) => {
+          const elapsed = Math.min(1, (timestamp - startedAt) / duration)
+          const next = acceleratedCompletionProgress(startValue, elapsed)
+          nominationProgressValueRef.current = next
+          setNominationProgress(next)
+
+          if (elapsed < 1) {
+            nominationProgressAnimationRef.current = window.requestAnimationFrame(finishProgress)
+            return
+          }
+
+          nominationProgressAnimationRef.current = null
+          resolve()
+        }
+
+        nominationProgressAnimationRef.current = window.requestAnimationFrame(finishProgress)
+      })
+      await new Promise((resolve) => window.setTimeout(resolve, reduceMotion ? 40 : 260))
       setNominated(true)
       setNominationOpen(false)
       setCodeReminderOpen(true)
@@ -525,6 +556,11 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
         window.clearInterval(nominationProgressTimerRef.current)
         nominationProgressTimerRef.current = null
       }
+      if (nominationProgressAnimationRef.current) {
+        window.cancelAnimationFrame(nominationProgressAnimationRef.current)
+        nominationProgressAnimationRef.current = null
+      }
+      nominationProgressValueRef.current = 0
       setNominationProgress(0)
       setNominationError(error instanceof Error ? error.message : 'Chưa thể đề danh lúc này.')
     } finally {
@@ -796,7 +832,7 @@ function PrinterStudio({ onComplete, onNominated }: PrinterStudioProps) {
                           <motion.span
                             initial={false}
                             animate={{ scaleX: nominationProgress / 100 }}
-                            transition={{ duration: reduceMotion ? 0 : 0.35, ease: [0.16, 1, 0.3, 1] }}
+                            transition={{ duration: reduceMotion ? 0 : 0.14, ease: 'linear' }}
                           />
                         </div>
                         <small>Vui lòng giữ trang này mở trong giây lát</small>
